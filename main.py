@@ -5,7 +5,6 @@ Make sure you install python 3.6+ and run:
 before trying to run.
 """
 
-from msilib import sequence
 import os
 
 import dash
