@@ -1,19 +1,31 @@
 import pandas
 import plotly.graph_objects as go
 import plotly.subplots as sp
-def build(pan_allow, pan_block):
+import numpy as np
+def build(threat_stats):
     # Sum all counts for a given month
-    sum_allow = pan_allow.groupby('date', as_index=False).sum()
-    sum_block = pan_block.groupby('date', as_index=False).sum()
+    sum_action = threat_stats.groupby(['time', 'Action'], as_index=False, dropna=False)['count'].sum()
+    # print(sum_action)
+
+    # sum_block = pan_block.groupby('date', as_index=False).sum()
 
     # Move all required columns into a single DF and calculate any derived information
     cols = pandas.DataFrame()
-    cols["date"] = sum_allow['date']
-    cols["allow_ct"] = sum_allow['count']
-    cols["block_ct"] = sum_block['count']
+    cols["date"] = sum_action['time']
+
+    cols["allow_ct"] = sum_action[sum_action['Action']=="Blocked"]['count']
+    cols["block_ct"] = sum_action[sum_action['Action']!="Blocked"]['count']
+
+    data = {"date":[], "allow_ct":[], "block_ct":[]}
+    for _, group in cols.groupby('date'):
+        vals = group.values
+        data['date'].append(vals[0][0])
+        data['allow_ct'].append(vals[0][1])
+        data['block_ct'].append(vals[1][2])
+    cols = pandas.DataFrame(data)
+    
     cols["prcnt_block"] = cols['block_ct']/(cols['allow_ct']+cols['block_ct'])
-    cols["trnd_block"] = cols['prcnt_block'].expanding().mean()
-    # print(cols)
+    print(cols)
 
     # Create all subplots for the first graph
     figlist = [
@@ -34,12 +46,6 @@ def build(pan_allow, pan_block):
             x=cols['date'],
             y=cols["prcnt_block"],
             marker_color="CornflowerBlue"
-        ),
-        go.Scatter(
-            name="Avg Blocked",
-            x=cols['date'],
-            y=cols["trnd_block"],
-            marker_color="Chartreuse"
         )
     ]
     # Overlap all the subplots onto one plot
@@ -47,7 +53,6 @@ def build(pan_allow, pan_block):
     fig.add_trace(figlist[0], secondary_y=False)
     fig.add_trace(figlist[1], secondary_y=False)
     fig.add_trace(figlist[2], secondary_y=True)
-    fig.add_trace(figlist[3], secondary_y=True)
     
     # Apply formatting
     fig.update_layout(
@@ -57,3 +62,6 @@ def build(pan_allow, pan_block):
         barmode='stack'
     )
     return fig
+
+if __name__ == "__main__":
+    build(pandas.read_csv(r"C:\Users\dtfel\OneDrive\Documents\School\Senior Project\SeniorProject\data\host_exploit_threat_stats_complete.csv"))

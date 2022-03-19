@@ -10,8 +10,10 @@ import os
 import dash
 from dash import html
 from dash import dcc
-
 import pandas
+
+import figures.NetworkTrafficStats as nts1
+import figures.NetworkThreatStats as nts2
 
 # Import csv files into memory
 CSVs = {}
@@ -20,8 +22,8 @@ for filename in os.listdir(directory):
     CSVs[filename] = pandas.read_csv(os.path.join(directory, filename))
 
 def buildGraphs():
-    from figures.NetworkTrafficStats import buildNTS
-    return buildNTS(CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"])
+    # return nts1.build(CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"])
+    return nts2.build(CSVs['host_exploit_threat_stats_complete.csv'])
     
 
 app = dash.Dash()   #initialising dash app
