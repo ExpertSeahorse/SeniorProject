@@ -26,19 +26,29 @@ def build(threat_stats):
         data['prcnt_block'].append((int)(vals[1][2]/(vals[0][1]+vals[1][2]) * 100))
         data['total'].append(vals[1][2]+vals[0][1])
     cols = pandas.DataFrame(data)
+    # print(cols)
     
-    fig = go.Figure(data=[go.Table(
-    header=dict(values=["Date", "Total", "Allowed","Blocked","Block Rate Percentage"],
-                fill_color='paleturquoise',
-                align='left'),
-    cells=dict(values=[data['date'],data['total'],data['allowed'],data['blocked'],data['prcnt_block']],
-               fill_color='lavender',
-               align='left'))
-    ])
+    # fig = go.Figure(data=[go.Table(
+    fig = go.Table(
+        header=dict(
+            values=["Date", "Total", "Allowed","Blocked","Block Rate Percentage"],
+            fill_color='paleturquoise',
+            align='left'
+        ),
+        cells=dict(
+            values=[data['date'],data['total'],data['allowed'],data['blocked'],data['prcnt_block']],
+            fill_color='lavender',
+            align='left'
+        )
+    )
+    # ])
 
-    fig.update_layout(width=500, height=400)
-    #fig.show()
-    return fig
+    layout = {
+        'width':500, 'height':400
+    }
+    # fig.update_layout(width=500, height=400)
+    # fig.show()
+    return [fig], layout
 
 if __name__ == "__main__":
     build(pandas.read_csv(r"C:\Users\dtfel\OneDrive\Documents\School\Senior Project\SeniorProject\data\host_exploit_threat_stats_complete.csv"))

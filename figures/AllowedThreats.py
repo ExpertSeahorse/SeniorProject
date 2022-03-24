@@ -24,18 +24,27 @@ def build(threat_stats):
     cols = pandas.DataFrame(data)
     #print(cols)
     
-    fig = go.Figure(data=[go.Table(
-    header=dict(values=["Date","Allowed Threats"],
-                fill_color='paleturquoise',
-                align='left'),
-    cells=dict(values=[data['date'],data['allowed']],
-               fill_color='lavender',
-               align='left'))
-    ])
+    # fig = go.Figure(data=[go.Table(
+    fig = go.Table(
+        header=dict(
+            values=["Date","Allowed Threats"],
+            fill_color='paleturquoise',
+            align='left'
+        ),
+        cells=dict(
+            values=[data['date'],data['allowed']],
+            fill_color='lavender',
+            align='left'
+        )
+    )
+    # ])
 
-    fig.update_layout(width=500, height=400)
+    layout = {
+        'width':500, 'height':400
+    }
+    # fig.update_layout(width=500, height=400)
     # fig.show()
-    return fig
+    return [fig], layout
 
-if __name__ == "__main__":
-    build(pandas.read_csv(r"C:\Users\dtfel\OneDrive\Documents\School\Senior Project\SeniorProject\data\host_exploit_threat_stats_complete.csv"))
+# if __name__ == "__main__":
+#     build(pandas.read_csv(r"C:\Users\dtfel\OneDrive\Documents\School\Senior Project\SeniorProject\data\host_exploit_threat_stats_complete.csv"))
