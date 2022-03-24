@@ -20,14 +20,15 @@ for filename in os.listdir(directory):
     CSVs[filename] = pandas.read_csv(os.path.join(directory, filename))
 
 CSVDirectory = [
-    [ CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"] ], # nts1
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # nts2
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # at
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # tns
-    [  ],
-    [  ], 
-    [  ],
-    [  ],
+    [ CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"] ], # Network Traffic Stats
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Network Threat Stats
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Table Top count
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Total network stats
+    [ CSVs['allevents.stats.complete.csv'] ],                                                           # All Splunk Events
+    [ CSVs['allevents.stats.complete.csv'] ],                                                           # Table Total stats for Splunk
+    [ CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
     [  ],
 ]
 
@@ -35,37 +36,46 @@ CSVDirectory = [
 # TODO: Fix annotation, move over to each graph
 # TODO: stack bar graphs
 def buildGraphs(row, types):
+    # Build Subplot Frame
     left, right = figs.get()[row]
     specs = [
         {"type": types[0]}, {"type": types[1]}
     ]
     if types[0] == 'xy':
         specs[0]['secondary_y'] = True
+        # specs[0]['barmode'] = 'stack'
     if types[1] == 'xy':
         specs[1]['secondary_y'] = True
-        
+        # specs[1][
+    
     fig = sp.make_subplots(
         rows=1, cols=2,
         row_heights=[0.6],
         specs=[specs]
     )
+
+    # Fill each cell with a graph or table
     for i in range(2):
+        figlist = None,
+        layout = None
         if i % 2 == 0:
-            figlist, layout = left.build(*(CSVDirectory[2*row]))
+            if left is not None:
+                figlist, layout = left.build(*(CSVDirectory[2*row]))
         else:
-            print((2*row)+1)
-            figlist, layout = right.build(*(CSVDirectory[(2*row)+1]))
+            if right is not None:
+                figlist, layout = right.build(*(CSVDirectory[(2*row)+1]))
 
-        for j in range(len(figlist)):
-            if layout.get('secondary_y'):
-                fig.add_trace(figlist[j], secondary_y=layout['secondary_y'][j], row=1, col=(1+i))
-            else:
-                fig.add_trace(figlist[j], row=1, col=(1+i))
-
-    # return nts1.build(CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"])
-    # return nts2.build(CSVs['host_exploit_threat_stats_complete.csv'])
-    # return at.build(CSVs['host_exploit_threat_stats_complete.csv'])
-    # return tns.build(CSVs['host_exploit_threat_stats_complete.csv'])
+        if figlist is not None and layout is not None:
+            for j in range(len(figlist)):
+                if layout.get('secondary_y'):
+                    fig.add_trace(figlist[j], secondary_y=layout['secondary_y'][j], row=1, col=(1+i))
+                else:
+                    fig.add_trace(figlist[j], row=1, col=(1+i))
+    
+    # Adjust the layout of the fig
+    fig.update_layout(
+        barmode='stack'
+    )
 
     return fig
     
@@ -80,7 +90,7 @@ app.layout = html.Div(id = 'parent', children = [
     # *graphs
     dcc.Graph(id = 'row1', figure = buildGraphs(0, ['xy','xy'])),
     dcc.Graph(id = 'row2', figure = buildGraphs(1, ['table','table'])),
-    # dcc.Graph(id = 'row3', figure = buildGraphs(2)),
+    dcc.Graph(id = 'row3', figure = buildGraphs(2, ['xy','table'])),
     # dcc.Graph(id = 'row4', figure = buildGraphs(3)),
     # dcc.Graph(id = 'row5', figure = buildGraphs(4)),
     # dcc.Graph(id = 'row6', figure = buildGraphs(5)),
