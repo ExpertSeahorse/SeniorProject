@@ -80,21 +80,17 @@ def buildGraphs(row, types):
     return fig
     
 
-app = Dash()   #initialising dash app
-# graphs = []
-# for i in range(len(figs.get())):
-#     graphs.append(dcc.Graph(id=f"row{i}", figure=buildGraphs(i)))
-
+app = Dash()   #initialize dash app
 app.layout = html.Div(id = 'parent', children = [
     html.H1(id = 'H1', children = 'Raymond James Dashboard', style = {'textAlign':'center', 'marginTop':40,'marginBottom':40}),
     # *graphs
     dcc.Graph(id = 'row1', figure = buildGraphs(0, ['xy','xy'])),
     dcc.Graph(id = 'row2', figure = buildGraphs(1, ['table','table'])),
     dcc.Graph(id = 'row3', figure = buildGraphs(2, ['xy','table'])),
-    # dcc.Graph(id = 'row4', figure = buildGraphs(3)),
-    # dcc.Graph(id = 'row5', figure = buildGraphs(4)),
-    # dcc.Graph(id = 'row6', figure = buildGraphs(5)),
-    # dcc.Graph(id = 'row7', figure = buildGraphs(6))
+    dcc.Graph(id = 'row4', figure = buildGraphs(3, ['table', 'xy'])),
+    dcc.Graph(id = 'row5', figure = buildGraphs(4, ['xy', 'xy'])),
+    # TODO: make a 2 col graph obj, maybe dont use build graphs
+    # dcc.Graph(id = 'row6', figure = buildGraphs(5, [])),
 ])
 
 

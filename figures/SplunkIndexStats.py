@@ -28,15 +28,24 @@ def build(splunk_stats):
         data['count'].append(vals[0][2])
     cols = pandas.DataFrame(data)
     
-    fig = go.Figure(data=[go.Table(
-    header=dict(values=["Date", "Index", "Count"],
-                fill_color='lightskyblue',
-                align='left'),
-    cells=dict(values=[data['date'],data['index'],data['count']],
-               fill_color='lavender',
-               align='left'))
-    ])
+    # fig = go.Figure(data=[go.Table(
+    fig = go.Table(
+        header=dict(
+            values=["Date", "Index", "Count"],
+            fill_color='lightskyblue',
+            align='left'
+        ),
+        cells=dict(
+            values=[data['date'],data['index'],data['count']],
+            fill_color='lavender',
+            align='left'
+        )
+    )
+    # ])
 
-    fig.update_layout(width=500, height=400)
-    #fig.show()
-    return fig
+    layout = {
+        'width':500, 'height':400
+    }
+    # fig.update_layout(width=500, height=400)
+    # fig.show()
+    return [fig], layout
