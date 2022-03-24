@@ -42,18 +42,25 @@ def build(pan_allow, pan_block):
             marker_color="Chartreuse"
         )
     ]
-    # Overlap all the subplots onto one plot
-    fig = sp.make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(figlist[0], secondary_y=False)
-    fig.add_trace(figlist[1], secondary_y=False)
-    fig.add_trace(figlist[2], secondary_y=True)
-    fig.add_trace(figlist[3], secondary_y=True)
+    layout = {
+        'title': 'Network Traffic Stats​',
+        'xaxis_title': 'Dates',
+        'yaxis_title': 'Count',
+        'barmode': 'stack',
+        'secondary_y': [False, False, True, True]
+    }
+    # # Overlap all the subplots onto one plot
+    # fig = sp.make_subplots(specs=[[{"secondary_y": True}]])
+    # fig.add_trace(figlist[0], secondary_y=False)
+    # fig.add_trace(figlist[1], secondary_y=False)
+    # fig.add_trace(figlist[2], secondary_y=True)
+    # fig.add_trace(figlist[3], secondary_y=True)
     
-    # Apply formatting
-    fig.update_layout(
-        title = 'Network Traffic Stats​',
-        xaxis_title = 'Dates',
-        yaxis_title = 'Count',
-        barmode='stack'
-    )
-    return fig
+    # # Apply formatting
+    # fig.update_layout(
+    #     title = 'Network Traffic Stats​',
+    #     xaxis_title = 'Dates',
+    #     yaxis_title = 'Count',
+    #     barmode='stack'
+    # )
+    return figlist, layout

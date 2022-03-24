@@ -25,7 +25,7 @@ def build(threat_stats):
     cols = pandas.DataFrame(data)
     
     cols["prcnt_block"] = cols['block_ct']/(cols['allow_ct']+cols['block_ct'])
-    print(cols)
+    # print(cols)
 
     # Create all subplots for the first graph
     figlist = [
@@ -48,20 +48,29 @@ def build(threat_stats):
             marker_color="CornflowerBlue"
         )
     ]
-    # Overlap all the subplots onto one plot
-    fig = sp.make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(figlist[0], secondary_y=False)
-    fig.add_trace(figlist[1], secondary_y=False)
-    fig.add_trace(figlist[2], secondary_y=True)
     
-    # Apply formatting
-    fig.update_layout(
-        title = 'Network Traffic Stats​',
-        xaxis_title = 'Dates',
-        yaxis_title = 'Count',
-        barmode='stack'
-    )
-    return fig
+    layout = {
+        'title': 'Network Traffic Stats​',
+        'xaxis_title': 'Dates',
+        'yaxis_title': 'Count',
+        'barmode': 'stack',
+        'secondary_y': [False, False, True]
+    }
+    # Overlap all the subplots onto one plot
+    # fig = sp.make_subplots(specs=[[{"secondary_y": True}]])
+    # fig.add_trace(figlist[0], secondary_y=False)
+    # fig.add_trace(figlist[1], secondary_y=False)
+    # fig.add_trace(figlist[2], secondary_y=True)
+    
+    # # Apply formatting
+    # fig.update_layout(
+    #     title = 'Network Traffic Stats​',
+    #     xaxis_title = 'Dates',
+    #     yaxis_title = 'Count',
+    #     barmode='stack'
+    # )
+    # return fig
+    return figlist, layout
 
-if __name__ == "__main__":
-    build(pandas.read_csv(r"C:\Users\dtfel\OneDrive\Documents\School\Senior Project\SeniorProject\data\host_exploit_threat_stats_complete.csv"))
+# if __name__ == "__main__":
+#     build(pandas.read_csv(r"C:\Users\dtfel\OneDrive\Documents\School\Senior Project\SeniorProject\data\host_exploit_threat_stats_complete.csv"))
