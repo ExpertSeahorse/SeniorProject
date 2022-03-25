@@ -29,18 +29,18 @@ def build(threat_stats):
         header=dict(
             values=["Date","Allowed Threats"],
             fill_color='paleturquoise',
-            align='left'
+            align='center'
         ),
         cells=dict(
             values=[data['date'],data['allowed']],
             fill_color='lavender',
-            align='left'
+            align='center'
         )
     )
     # ])
 
     layout = {
-        'width':500, 'height':400
+        'width':500, 'height':400, 'title': "Allowed Threats"
     }
     # fig.update_layout(width=500, height=400)
     # fig.show()

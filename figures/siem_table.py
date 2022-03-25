@@ -28,7 +28,7 @@ def buildGraphs():
                header=dict(
                 values=["date","index","count"],
                 fill_color='paleturquoise',
-                align='left'),
+                align='center'),
             cells=dict(values=[SIEM[i].tolist() for i in SIEM.columns[0:]],
                 fill_color='lavender',
                 align='center')       

@@ -33,18 +33,18 @@ def build(splunk_stats):
         header=dict(
             values=["Date", "Index", "Count"],
             fill_color='lightskyblue',
-            align='left'
+            align='center'
         ),
         cells=dict(
             values=[data['date'],data['index'],data['count']],
             fill_color='lavender',
-            align='left'
+            align='center'
         )
     )
     # ])
 
     layout = {
-        'width':500, 'height':400
+        'width':500, 'height':400, 'title': "Stats per SIEM index"
     }
     # fig.update_layout(width=500, height=400)
     # fig.show()
