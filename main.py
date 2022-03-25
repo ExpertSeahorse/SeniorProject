@@ -80,8 +80,16 @@ def buildGraphs(row, types):
                 else:
                     fig.add_trace(figlist[j], row=1, col=(1+i))
                 
-                # fig.update_layout(title_text=layout['title'], row=1, col=(1+i))
-                # fig.update
+                if layout.get('xaxis_title'):
+                    fig.update_xaxes(title_text=layout['xaxis_title'], row=1, col=1+i)
+                if layout.get('yaxis_title'):
+                    fig.update_yaxes(title_text=layout['yaxis_title'], row=1, col=1+i)
+                if layout.get('y2axis_title'):
+                    fig.update_yaxes(title_text=layout['y2axis_title'], row=1, col=1+i, secondary_y=True)
+                if layout.get('width'):
+                    fig.update_layout
+                if layout.get('height'):
+                    fig.update_layout
     
     # Adjust the layout of the fig
     fig.update_layout(
@@ -103,7 +111,7 @@ app.layout = html.Div(id = 'parent', children = [
     dcc.Graph(id = 'row3', figure = buildGraphs(2, ['xy','table'])),
     dcc.Graph(id = 'row4', figure = buildGraphs(3, ['table', 'xy'])),
     dcc.Graph(id = 'row5', figure = buildGraphs(4, ['xy', 'xy'])),
-    # TODO: make a 2 col graph obj, maybe dont use build graphs
+    # TODO: make a 2 col graph obj, maybe dont build table as a subplot ==> in specs of subplot, use rowspan=2
     # dcc.Graph(id = 'row6', figure = buildGraphs(5, [])),
 ])
 

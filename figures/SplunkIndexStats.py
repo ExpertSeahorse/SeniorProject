@@ -15,18 +15,20 @@ def build(splunk_stats):
     # print(sum_action)
 
     # Move all required columns into a single DF and calculate any derived information
-    cols = pandas.DataFrame()
-    cols["date"] = sum_action['date']
-    cols["index"] = sum_action['index']
-    cols["count"] = sum_action['count']
+    data = pandas.DataFrame()
+    data["date"] = sum_action['date']
+    data["index"] = sum_action['index']
+    data["count"] = sum_action['count']
 
-    data = {"date":[], "index":[], "count":[]}
-    for _, group in cols.groupby('date'):
-        vals = group.values
-        data['date'].append(vals[0][0])
-        data['index'].append(vals[0][1])
-        data['count'].append(vals[0][2])
-    cols = pandas.DataFrame(data)
+    # data = {"date":[], "index":[], "count":[]}
+    # for _, group in cols.groupby('date'):
+    #     vals = group.values
+    #     # print(vals)
+    #     data['date'].append(vals[0][0])
+    #     data['index'].append(vals[0][1])
+    #     data['count'].append(vals[0][2])
+    # cols = pandas.DataFrame(data)
+    # print(cols)
     
     # fig = go.Figure(data=[go.Table(
     fig = go.Table(

@@ -46,6 +46,7 @@ def build(pan_allow, pan_block):
         'title': 'Network Traffic Stats​',
         'xaxis_title': 'Dates',
         'yaxis_title': 'Count',
+        'y2axis_title': 'Percent',
         'secondary_y': [False, False, True, True]
     }
     # # Overlap all the subplots onto one plot
