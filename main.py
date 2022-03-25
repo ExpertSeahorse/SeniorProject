@@ -50,20 +50,28 @@ def buildGraphs(row, types):
     
     fig = sp.make_subplots(
         rows=1, cols=2,
+        subplot_titles=("Left", "Right"),
         row_heights=[0.6],
         specs=[specs]
     )
 
     # Fill each cell with a graph or table
+    title_replace = {}
     for i in range(2):
         figlist = None,
         layout = None
         if i % 2 == 0:
             if left is not None:
                 figlist, layout = left.build(*(CSVDirectory[2*row]))
+                title_replace["Left"] = layout['title']
+            else:
+                title_replace["Left"]= ""
         else:
             if right is not None:
                 figlist, layout = right.build(*(CSVDirectory[(2*row)+1]))
+                title_replace["Right"]= layout['title']
+            else:
+                title_replace["Right"]= ""
 
         if figlist is not None and layout is not None:
             for j in range(len(figlist)):
@@ -71,12 +79,18 @@ def buildGraphs(row, types):
                     fig.add_trace(figlist[j], secondary_y=layout['secondary_y'][j], row=1, col=(1+i))
                 else:
                     fig.add_trace(figlist[j], row=1, col=(1+i))
+                
+                # fig.update_layout(title_text=layout['title'], row=1, col=(1+i))
+                # fig.update
     
     # Adjust the layout of the fig
     fig.update_layout(
         barmode='stack'
     )
 
+    # Replace all placeholder titles with real ones
+    # https://stackoverflow.com/questions/63220009/how-do-i-set-each-plotly-subplot-title-during-graph-creation-loop
+    fig.for_each_annotation(lambda a: a.update(text = title_replace[a.text]))
     return fig
     
 

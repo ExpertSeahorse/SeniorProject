@@ -33,18 +33,18 @@ def build(threat_stats):
         header=dict(
             values=["Date", "Total", "Allowed","Blocked","Block Rate Percentage"],
             fill_color='paleturquoise',
-            align='left'
+            align='center'
         ),
         cells=dict(
             values=[data['date'],data['total'],data['allowed'],data['blocked'],data['prcnt_block']],
             fill_color='lavender',
-            align='left'
+            align='center'
         )
     )
     # ])
 
     layout = {
-        'width':500, 'height':400
+        'width':500, 'height':400, 'title': "Total Network Stats"
     }
     # fig.update_layout(width=500, height=400)
     # fig.show()

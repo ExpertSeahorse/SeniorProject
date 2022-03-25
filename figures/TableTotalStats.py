@@ -25,7 +25,7 @@ def build(SIEM):
     # fig = go.Figure([
     fig = go.Table(
         header=dict(
-            values=["date","count"],
+            values=["Date","Count"],
             fill_color='paleturquoise',
             align='center'
         ),
@@ -37,7 +37,7 @@ def build(SIEM):
     )
     # ])
     layout = {
-        'width':500, 'height':400
+        'width':500, 'height':400, 'title': "Total SIEM Stats"
     }
     # fig.update_layout(width=500, height=400)
     # fig.show()
