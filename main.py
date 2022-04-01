@@ -9,16 +9,18 @@ import os
 import pandas
 import plotly.subplots as sp
 from dash import Dash, html, dcc
+from dash.dependencies import Input, Output
 
 # import graphs and table building functions
 import figures as figs
 
-# Import csv files into memory
+# Import csv files into Pandas DataFrames
 CSVs = {}
 directory = 'data'
 for filename in os.listdir(directory):
     CSVs[filename] = pandas.read_csv(os.path.join(directory, filename))
 
+# Organize which CSVs will be needed for which visuals
 CSVDirectory = [
     [ CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"] ], # Network Traffic Stats
     [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Network Threat Stats
@@ -33,8 +35,6 @@ CSVDirectory = [
 ]
 
 # Build each graph and table and return a single plotly object
-# TODO: Fix annotation, move over to each graph
-# TODO: stack bar graphs
 def buildGraphs(row, types):
     # Build Subplot Frame
     left, right = figs.get()[row]
@@ -43,10 +43,8 @@ def buildGraphs(row, types):
     ]
     if types[0] == 'xy':
         specs[0]['secondary_y'] = True
-        # specs[0]['barmode'] = 'stack'
     if types[1] == 'xy':
         specs[1]['secondary_y'] = True
-        # specs[1][
     
     fig = sp.make_subplots(
         rows=1, cols=2,
@@ -60,6 +58,8 @@ def buildGraphs(row, types):
     for i in range(2):
         figlist = None,
         layout = None
+
+        # build left and right visuals
         if i % 2 == 0:
             if left is not None:
                 figlist, layout = left.build(*(CSVDirectory[2*row]))
@@ -74,12 +74,14 @@ def buildGraphs(row, types):
                 title_replace["Right"]= ""
 
         if figlist is not None and layout is not None:
+            # Plot the figures in the figlist
             for j in range(len(figlist)):
                 if layout.get('secondary_y'):
                     fig.add_trace(figlist[j], secondary_y=layout['secondary_y'][j], row=1, col=(1+i))
                 else:
                     fig.add_trace(figlist[j], row=1, col=(1+i))
                 
+                # Add any formatting
                 if layout.get('xaxis_title'):
                     fig.update_xaxes(title_text=layout['xaxis_title'], row=1, col=1+i)
                 if layout.get('yaxis_title'):
@@ -100,21 +102,29 @@ def buildGraphs(row, types):
     # https://stackoverflow.com/questions/63220009/how-do-i-set-each-plotly-subplot-title-during-graph-creation-loop
     fig.for_each_annotation(lambda a: a.update(text = title_replace[a.text]))
     return fig
-    
+
+
+def serve_layout():
+    """Serving Dash the layout as a function makes it reload the graphs after each reload of the webpage, instead of after each reboot of the WSGI server"""
+    return html.Div(id = 'parent', children = [
+        html.H1(id = 'H1', children = 'Raymond James Dashboard', style = {'textAlign':'center', 'marginTop':40,'marginBottom':40}),
+        dcc.Graph(id = 'row1', figure = buildGraphs(0, ['xy','xy'])),
+        dcc.Graph(id = 'row2', figure = buildGraphs(1, ['table','table'])),
+        dcc.Graph(id = 'row3', figure = buildGraphs(2, ['xy','table'])),
+        dcc.Graph(id = 'row4', figure = buildGraphs(3, ['table', 'xy'])),
+        dcc.Graph(id = 'row5', figure = buildGraphs(4, ['xy', 'xy'])),
+        # TODO: make a 2 col graph obj, maybe dont build table as a subplot ==> in specs of subplot, use rowspan=2
+        # dcc.Graph(id = 'row6', figure = buildGraphs(5, [])),
+    ])
 
 app = Dash()   #initialize dash app
-app.layout = html.Div(id = 'parent', children = [
-    html.H1(id = 'H1', children = 'Raymond James Dashboard', style = {'textAlign':'center', 'marginTop':40,'marginBottom':40}),
-    # *graphs
-    dcc.Graph(id = 'row1', figure = buildGraphs(0, ['xy','xy'])),
-    dcc.Graph(id = 'row2', figure = buildGraphs(1, ['table','table'])),
-    dcc.Graph(id = 'row3', figure = buildGraphs(2, ['xy','table'])),
-    dcc.Graph(id = 'row4', figure = buildGraphs(3, ['table', 'xy'])),
-    dcc.Graph(id = 'row5', figure = buildGraphs(4, ['xy', 'xy'])),
-    # TODO: make a 2 col graph obj, maybe dont build table as a subplot ==> in specs of subplot, use rowspan=2
-    # dcc.Graph(id = 'row6', figure = buildGraphs(5, [])),
-])
+app.layout = serve_layout
 
+# Needed for the dropdown
+# @app.callback(
+#     Output(component_id='row1', component_property='value'),
+#     Input
+# )
 
 if __name__ == '__main__': 
     app.run_server()
