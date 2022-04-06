@@ -6,6 +6,8 @@ before trying to run.
 """
 
 import os
+import math
+from datetime import datetime
 import pandas
 import plotly.subplots as sp
 from dash import Dash, html, dcc
@@ -14,11 +16,45 @@ from dash.dependencies import Input, Output
 # import graphs and table building functions
 import figures as figs
 
+FYs = []
+QTRs = []
+MONs = []
+QTR_lookup = {
+    "Q1": []
+}
 # Import csv files into Pandas DataFrames
 CSVs = {}
 directory = 'data'
 for filename in os.listdir(directory):
-    CSVs[filename] = pandas.read_csv(os.path.join(directory, filename))
+    csv = pandas.read_csv(os.path.join(directory, filename))
+    CSVs[filename] = csv
+    
+
+    if 'time' in csv.columns:
+        dates = csv.time.unique()
+    elif 'date' in csv.columns:
+        dates = csv.date.unique()
+    else:
+        print("no 'date' or 'time' column to get dates")
+        
+    for d in dates:
+        date = datetime.strptime(d, "%Y-%m")
+        
+        # Determine if year is already in years
+        if date.strftime("%y") not in FYs:
+            FYs.append(date.strftime("%y"))
+        date.strftime('%m') 
+
+        # Determine if quarter is already in quarters
+        yr = date.strftime("%y")
+        mo = date.strftime("%m")
+        qtr = yr + str( math.ceil(int(mo)/3) )
+        if qtr not in QTRs:
+            QTRs.append(qtr)
+
+        # Determine if month is already in months
+        if d not in MONs:
+            MONs.append(d)
 
 # Organize which CSVs will be needed for which visuals
 CSVDirectory = [
@@ -104,9 +140,28 @@ def buildGraphs(row, types):
     return fig
 
 
+def buildDropdowns():
+    fy = html.Div(id="fydiv", children=[
+        dcc.Dropdown(FYs, placeholder="Select a Fiscal Year", id="fy")
+    ], style={'padding': 10, 'flex': 1})
+
+    qtr = html.Div(id="qtrdiv", children=[
+        dcc.Dropdown(QTRs, placeholder="Select a Quarter", id="qtr")
+    ], style={'padding': 10, 'flex': 1})
+
+    mon = html.Div(id="modiv", children=[
+        dcc.Dropdown(MONs, placeholder="Select a Month", id="mo")
+    ], style={'padding': 10, 'flex': 1})
+
+    return html.Div(id="dates", children=[
+        fy, qtr, mon
+    ], style={'display': 'flex', 'flex-direction': 'row'})
+
+
 def serve_layout():
     """Serving Dash the layout as a function makes it reload the graphs after each reload of the webpage, instead of after each reboot of the WSGI server"""
     return html.Div(id = 'parent', children = [
+        buildDropdowns(),
         html.H1(id = 'H1', children = 'Raymond James Dashboard', style = {'textAlign':'center', 'marginTop':40,'marginBottom':40}),
         dcc.Graph(id = 'row1', figure = buildGraphs(0, ['xy','xy'])),
         dcc.Graph(id = 'row2', figure = buildGraphs(1, ['table','table'])),
@@ -120,11 +175,59 @@ def serve_layout():
 app = Dash()   #initialize dash app
 app.layout = serve_layout
 
-# Needed for the dropdown
-# @app.callback(
-#     Output(component_id='row1', component_property='value'),
-#     Input
-# )
+# Update all the visuals according to the values in the dropdowns
+@app.callback(
+    Output(component_id='row1', component_property='figure'),
+    Output(component_id='row2', component_property='figure'),
+    Output(component_id='row3', component_property='figure'),
+    Output(component_id='row4', component_property='figure'),
+    Output(component_id='row5', component_property='figure'),
+    Input (component_id="fy", component_property='value'),
+    Input (component_id="qtr", component_property='value'),
+    Input (component_id="mo", component_property='value'),
+)
+def update_graphs(fy, qtr, mo):
+    """Update graph values with dropdown filters"""
+    print(fy, qtr, mo)
+    # TODO: is FY2019 Oct18-Sep19?
+    # TODO: is 19Q1 from Jan-March or Oct-Dec?
+    filtered_CSVs = {}
+    if fy:
+        for name, df in CSVs.items():
+            try:
+                filtered_CSVs[name] = df[df['time'].str.contains(str(fy))]
+            except KeyError:
+                filtered_CSVs[name] = df[df['date'].str.contains(str(fy))]
+
+    elif qtr:
+        pass
+    elif mo:
+        pass
+    else:
+        filtered_CSVs = CSVs
+
+    global CSVDirectory
+    CSVDirectory = [
+    [ filtered_CSVs["pan_allowed_traffic_stats_complete.csv"], filtered_CSVs["pan_blocked_traffic_stats_complete.csv"] ], # Network Traffic Stats
+    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Network Threat Stats
+    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Table Top count
+    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Total network stats
+    [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # All Splunk Events
+    [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # Table Total stats for Splunk
+    [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
+    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
+    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
+    [  ],
+]
+
+
+    return (
+        buildGraphs(0, ['xy','xy']),
+        buildGraphs(1, ['table','table']),
+        buildGraphs(2, ['xy','table']),
+        buildGraphs(3, ['table', 'xy']),
+        buildGraphs(4, ['xy', 'xy'])
+    )
 
 if __name__ == '__main__': 
     app.run_server()
