@@ -189,8 +189,8 @@ app.layout = serve_layout
 def update_graphs(fy, qtr, mo):
     """Update graph values with dropdown filters"""
     print(fy, qtr, mo)
-    # TODO: is FY2019 Oct18-Sep19?
-    # TODO: is 19Q1 from Jan-March or Oct-Dec?
+    # TODO: is FY2019 Oct18-Sep19 yes
+    # TODO: 19Q1 from Oct-Dec
     filtered_CSVs = {}
     if fy:
         for name, df in CSVs.items():
@@ -231,3 +231,9 @@ def update_graphs(fy, qtr, mo):
 
 if __name__ == '__main__': 
     app.run_server()
+
+
+"""
+sort index table by count
+heds: move all categories < 10% to other (color black)
+"""
