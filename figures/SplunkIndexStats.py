@@ -19,6 +19,7 @@ def build(splunk_stats):
     data["date"] = sum_action['date']
     data["index"] = sum_action['index']
     data["count"] = sum_action['count']
+    data.sort_values(by=['date', 'count'], inplace=True, ascending=[True, False])
 
     # data = {"date":[], "index":[], "count":[]}
     # for _, group in cols.groupby('date'):

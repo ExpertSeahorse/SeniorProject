@@ -147,15 +147,15 @@ def buildGraphs(row, types):
 
 def buildDropdowns():
     fy = html.Div(id="fydiv", children=[
-        dcc.Dropdown(FYs, placeholder="Select a Fiscal Year", id="fy")
+        dcc.Dropdown(sorted(FYs), placeholder="Select a Fiscal Year", id="fy")
     ], style={'padding': 10, 'flex': 1})
 
     qtr = html.Div(id="qtrdiv", children=[
-        dcc.Dropdown(QTRs, placeholder="Select a Quarter", id="qtr")
+        dcc.Dropdown(sorted(QTRs), placeholder="Select a Quarter", id="qtr")
     ], style={'padding': 10, 'flex': 1})
 
     mon = html.Div(id="modiv", children=[
-        dcc.Dropdown(MONs, placeholder="Select a Month", id="mo")
+        dcc.Dropdown(sorted(MONs), placeholder="Select a Month", id="mo")
     ], style={'padding': 10, 'flex': 1})
 
     return html.Div(id="dates", children=[
@@ -199,7 +199,7 @@ def update_graphs(fy, qtr, mo):
             try:
                 lfy = str(int(fy)-1)
                 pattern = f'20{fy}-0[1-9]|20{lfy}-1[0-2]'
-                # NOTE: we only have host exploit data for calander year 2021, so that is all that shows up
+                # NOTE: we only have host exploit data for calander year 2021, so that is all that shows up when FY21 is selected
                 filtered_CSVs[name] = df[df['time'].str.contains(pattern)]
             except KeyError:
                 filtered_CSVs[name] = df[df['date'].str.contains(pattern)]
