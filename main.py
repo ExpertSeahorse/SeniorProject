@@ -128,7 +128,7 @@ def buildGraphs(row, types):
                 if layout.get('yaxis_title'):
                     fig.update_yaxes(title_text=layout['yaxis_title'], row=1, col=1+i)
                 if layout.get('y2axis_title'):
-                    fig.update_yaxes(title_text=layout['y2axis_title'], row=1, col=1+i, secondary_y=True)
+                    fig.update_yaxes(title_text=layout['y2axis_title'], tickformat=".0%", row=1, col=1+i, secondary_y=True)
                 if layout.get('width'):
                     fig.update_layout
                 if layout.get('height'):
@@ -136,7 +136,7 @@ def buildGraphs(row, types):
     
     # Adjust the layout of the fig
     fig.update_layout(
-        barmode='stack'
+        barmode='stack',
     )
 
     # Replace all placeholder titles with real ones
@@ -257,8 +257,3 @@ def update_graphs(fy, qtr, mo):
 
 if __name__ == '__main__': 
     app.run_server()
-
-
-"""
-heds: move all categories < 10% to other (color black)
-"""
