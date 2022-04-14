@@ -124,7 +124,7 @@ def buildGraphs(row, types):
                 
                 # Add any formatting
                 if layout.get('xaxis_title'):
-                    fig.update_xaxes(title_text=layout['xaxis_title'], row=1, col=1+i)
+                    fig.update_xaxes(title_text=layout['xaxis_title'], tickangle=45, row=1, col=1+i)
                 if layout.get('yaxis_title'):
                     fig.update_yaxes(title_text=layout['yaxis_title'], row=1, col=1+i)
                 if layout.get('y2axis_title'):
@@ -260,6 +260,5 @@ if __name__ == '__main__':
 
 
 """
-sort index table by count
 heds: move all categories < 10% to other (color black)
 """
