@@ -48,7 +48,12 @@ for filename in os.listdir(directory):
         # Determine if quarter is already in quarters
         yr = date.strftime("%y")
         mo = date.strftime("%m")
-        qtr = yr + str( math.ceil(int(mo)/3) )
+        qnum = math.ceil(int(mo)/3)
+        if qnum == 4:
+            qnum = 1
+        else:
+            qnum += 1
+        qtr = 'Y' + yr + 'Q' + str(qnum)
         if qtr not in QTRs:
             QTRs.append(qtr)
 
@@ -188,21 +193,42 @@ app.layout = serve_layout
 )
 def update_graphs(fy, qtr, mo):
     """Update graph values with dropdown filters"""
-    print(fy, qtr, mo)
-    # TODO: is FY2019 Oct18-Sep19?
-    # TODO: is 19Q1 from Jan-March or Oct-Dec?
     filtered_CSVs = {}
     if fy:
         for name, df in CSVs.items():
             try:
-                filtered_CSVs[name] = df[df['time'].str.contains(str(fy))]
+                lfy = str(int(fy)-1)
+                pattern = f'20{fy}-0[1-9]|20{lfy}-1[0-2]'
+                # NOTE: we only have host exploit data for calander year 2021, so that is all that shows up
+                filtered_CSVs[name] = df[df['time'].str.contains(pattern)]
             except KeyError:
-                filtered_CSVs[name] = df[df['date'].str.contains(str(fy))]
+                filtered_CSVs[name] = df[df['date'].str.contains(pattern)]
 
     elif qtr:
-        pass
+        for name, df in CSVs.items():
+            # qtr = Y21Q1
+            yr = qtr[1:3]
+            ly = str(int(yr)-1)
+            if qtr[4] == '1':
+                pattern = f'20{ly}-1[0-2]'
+            else:
+                pattern = f'20{yr}-0['
+                if qtr[4] == '2':
+                    pattern += '1-3]'
+                elif qtr[4] == '3':
+                    pattern += '4-6]'
+                elif qtr[4] == '4':
+                    pattern += '7-9]'
+            try:
+                filtered_CSVs[name] = df[df['time'].str.contains(pattern)]
+            except KeyError:
+                filtered_CSVs[name] = df[df['date'].str.contains(pattern)]
     elif mo:
-        pass
+        for name, df in CSVs.items():
+            try:
+                filtered_CSVs[name] = df[df['time'].str.contains(str(mo))]
+            except KeyError:
+                filtered_CSVs[name] = df[df['date'].str.contains(str(mo))]
     else:
         filtered_CSVs = CSVs
 
@@ -231,3 +257,9 @@ def update_graphs(fy, qtr, mo):
 
 if __name__ == '__main__': 
     app.run_server()
+
+
+"""
+sort index table by count
+heds: move all categories < 10% to other (color black)
+"""
