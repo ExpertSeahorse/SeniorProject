@@ -13,7 +13,6 @@ def build(pan_allow, pan_block):
     cols["block_ct"] = sum_block['count']
     cols["prcnt_block"] = cols['block_ct']/(cols['allow_ct']+cols['block_ct'])
     cols["trnd_block"] = cols['prcnt_block'].expanding().mean()
-    # print(cols)
 
     # Create all subplots for the first graph
     figlist = [
