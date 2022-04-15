@@ -19,17 +19,14 @@ import figures as figs
 FYs = []
 QTRs = []
 MONs = []
-QTR_lookup = {
-    "Q1": []
-}
-# Import csv files into Pandas DataFrames
 CSVs = {}
 directory = 'data'
 for filename in os.listdir(directory):
+    # Import csv files into Pandas DataFrames
     csv = pandas.read_csv(os.path.join(directory, filename))
     CSVs[filename] = csv
     
-
+    # Generate list of FYs, QTRs, and MONs
     if 'time' in csv.columns:
         dates = csv.time.unique()
     elif 'date' in csv.columns:
@@ -234,18 +231,17 @@ def update_graphs(fy, qtr, mo):
 
     global CSVDirectory
     CSVDirectory = [
-    [ filtered_CSVs["pan_allowed_traffic_stats_complete.csv"], filtered_CSVs["pan_blocked_traffic_stats_complete.csv"] ], # Network Traffic Stats
-    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Network Threat Stats
-    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Table Top count
-    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Total network stats
-    [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # All Splunk Events
-    [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # Table Total stats for Splunk
-    [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
-    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
-    [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
-    [  ],
-]
-
+        [ filtered_CSVs["pan_allowed_traffic_stats_complete.csv"], filtered_CSVs["pan_blocked_traffic_stats_complete.csv"] ], # Network Traffic Stats
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Network Threat Stats
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Table Top count
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Total network stats
+        [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # All Splunk Events
+        [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # Table Total stats for Splunk
+        [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
+        [  ],
+    ]
 
     return (
         buildGraphs(0, ['xy','xy']),
