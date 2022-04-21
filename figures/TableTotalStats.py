@@ -18,6 +18,6 @@ def build(SIEM):
         )       
     )
     layout = {
-        'width':500, 'height':400, 'title': "Total SIEM Stats"
+        'title': "Total SIEM Stats"
     }
     return [fig], layout

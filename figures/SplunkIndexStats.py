@@ -35,6 +35,6 @@ def build(splunk_stats):
     )
 
     layout = {
-        'width':500, 'height':400, 'title': "Stats per SIEM index"
+        'title': "Stats per SIEM index"
     }
     return [fig], layout

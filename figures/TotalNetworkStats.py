@@ -52,6 +52,6 @@ def build(threat_stats):
     )
 
     layout = {
-        'width':500, 'height':400, 'title': "Total Network Stats"
+        'title': "Total Network Stats"
     }
     return [fig], layout

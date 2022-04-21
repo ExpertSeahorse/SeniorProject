@@ -14,7 +14,7 @@ from dash import Dash, html, dcc
 from dash.dependencies import Input, Output
 
 # import graphs and table building functions
-import figures as figs
+import figures
 
 FYs = []
 QTRs = []
@@ -74,72 +74,52 @@ CSVDirectory = [
 
 # Build each graph and table and return a single plotly object
 def buildGraphs(row, types):
-    # Build Subplot Frame
-    left, right = figs.get()[row]
-    specs = [
-        {"type": types[0]}, {"type": types[1]}
-    ]
-    if types[0] == 'xy':
-        specs[0]['secondary_y'] = True
-    if types[1] == 'xy':
-        specs[1]['secondary_y'] = True
-    
-    fig = sp.make_subplots(
-        rows=1, cols=2,
-        subplot_titles=("Left", "Right"),
-        row_heights=[0.6],
-        specs=[specs]
-    )
+    # Get figlists and layouts for row
+    fig_bases = figures.get()[row]
 
     # Fill each cell with a graph or table
-    title_replace = {}
+    rowid = 'row'+str(row)
+    children = [None, None]
     for i in range(2):
-        figlist = None,
-        layout = None
+        if fig_bases[i] is not None:
+            figlist, layout = fig_bases[i].build(*(CSVDirectory[(2*row)+i]))
+            specs = {"type": types[i]}
+            if types[i] == 'xy':
+                specs['secondary_y'] = True
 
-        # build left and right visuals
-        if i % 2 == 0:
-            if left is not None:
-                figlist, layout = left.build(*(CSVDirectory[2*row]))
-                title_replace["Left"] = layout['title']
-            else:
-                title_replace["Left"]= ""
-        else:
-            if right is not None:
-                figlist, layout = right.build(*(CSVDirectory[(2*row)+1]))
-                title_replace["Right"]= layout['title']
-            else:
-                title_replace["Right"]= ""
+            fig = sp.make_subplots(
+                # subplot_titles=layout['title'],
+                # row_heights=[0.6],
+                specs=[[specs]]
+            )
+            fig.update_layout(
+                barmode='stack'
+            )   
 
-        if figlist is not None and layout is not None:
-            # Plot the figures in the figlist
+            # Plot the figures from the figlist
             for j in range(len(figlist)):
                 if layout.get('secondary_y'):
-                    fig.add_trace(figlist[j], secondary_y=layout['secondary_y'][j], row=1, col=(1+i))
+                    fig.add_trace(figlist[j], secondary_y=layout['secondary_y'][j])
                 else:
-                    fig.add_trace(figlist[j], row=1, col=(1+i))
+                    fig.add_trace(figlist[j])
                 
                 # Add any formatting
+                fig.update_layout(title_text=layout['title'])
                 if layout.get('xaxis_title'):
-                    fig.update_xaxes(title_text=layout['xaxis_title'], tickangle=45, row=1, col=1+i)
+                    fig.update_xaxes(title_text=layout['xaxis_title'], tickangle=45)
                 if layout.get('yaxis_title'):
-                    fig.update_yaxes(title_text=layout['yaxis_title'], row=1, col=1+i)
+                    fig.update_yaxes(title_text=layout['yaxis_title'])
                 if layout.get('y2axis_title'):
-                    fig.update_yaxes(title_text=layout['y2axis_title'], tickformat=".0%", row=1, col=1+i, secondary_y=True)
-                if layout.get('width'):
-                    fig.update_layout
-                if layout.get('height'):
-                    fig.update_layout
-    
-    # Adjust the layout of the fig
-    fig.update_layout(
-        barmode='stack',
-    )
+                    fig.update_yaxes(title_text=layout['y2axis_title'], tickformat=".0%", secondary_y=True)
+                
 
-    # Replace all placeholder titles with real ones
-    # https://stackoverflow.com/questions/63220009/how-do-i-set-each-plotly-subplot-title-during-graph-creation-loop
-    fig.for_each_annotation(lambda a: a.update(text = title_replace[a.text]))
-    return fig
+            children[i] = html.Div(id=rowid+str(i), children=[
+                dcc.Graph(id=rowid+str(i)+'g', figure=fig)
+            ], style={'padding': 20, 'flex': 1})
+
+    return html.Div(id=rowid, children=children, style={'display': 'flex', 'flex-direction': 'row'})
+    # return html.Div(id=rowid, children=children, style={'display': 'inline-flex'})
+
 
 
 def buildDropdowns():
@@ -165,11 +145,11 @@ def serve_layout():
     return html.Div(id = 'parent', children = [
         buildDropdowns(),
         html.H1(id = 'H1', children = 'Raymond James Dashboard', style = {'textAlign':'center', 'marginTop':40,'marginBottom':40}),
-        dcc.Graph(id = 'row1', figure = buildGraphs(0, ['xy','xy'])),
-        dcc.Graph(id = 'row2', figure = buildGraphs(1, ['table','table'])),
-        dcc.Graph(id = 'row3', figure = buildGraphs(2, ['xy','table'])),
-        dcc.Graph(id = 'row4', figure = buildGraphs(3, ['table', 'xy'])),
-        dcc.Graph(id = 'row5', figure = buildGraphs(4, ['xy', 'xy'])),
+        buildGraphs(0, ['xy','xy']),
+        buildGraphs(1, ['table','table']),
+        buildGraphs(2, ['xy','table']),
+        buildGraphs(3, ['table', 'xy']),
+        buildGraphs(4, ['xy', 'xy']),
         # TODO: make a 2 col graph obj, maybe dont build table as a subplot ==> in specs of subplot, use rowspan=2
         # dcc.Graph(id = 'row6', figure = buildGraphs(5, [])),
     ])
@@ -179,11 +159,11 @@ app.layout = serve_layout
 
 # Update all the visuals according to the values in the dropdowns
 @app.callback(
-    Output(component_id='row1', component_property='figure'),
-    Output(component_id='row2', component_property='figure'),
-    Output(component_id='row3', component_property='figure'),
-    Output(component_id='row4', component_property='figure'),
-    Output(component_id='row5', component_property='figure'),
+    Output(component_id='row0', component_property='children'),
+    Output(component_id='row1', component_property='children'),
+    Output(component_id='row2', component_property='children'),
+    Output(component_id='row3', component_property='children'),
+    Output(component_id='row4', component_property='children'),
     Input (component_id="fy", component_property='value'),
     Input (component_id="qtr", component_property='value'),
     Input (component_id="mo", component_property='value'),
@@ -250,6 +230,7 @@ def update_graphs(fy, qtr, mo):
         buildGraphs(3, ['table', 'xy']),
         buildGraphs(4, ['xy', 'xy'])
     )
+    # return serve_layout
 
 if __name__ == '__main__': 
     app.run_server()

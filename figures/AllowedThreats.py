@@ -36,6 +36,6 @@ def build(threat_stats):
     )
 
     layout = {
-        'width':500, 'height':400, 'title': "Allowed Threats"
+        'title': "Allowed Threats"
     }
     return [fig], layout
