@@ -6,10 +6,9 @@ import figures.AllEventsGraph as ae
 import figures.TableTotalStats as tts
 import figures.HostExploitDetectionStats as heds
 import figures.SplunkIndexStats as sis
-# import figures.hostThreatQuarantined as htq
+import figures.HostThreatQuarantined as htq
 
-# tts = None
-htq = None
+# htq = None
 def get():
     return [
         [nts1, nts2], 

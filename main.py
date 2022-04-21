@@ -69,7 +69,7 @@ CSVDirectory = [
     [ CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
     [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
     [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
-    [  ],
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ]
 ]
 
 # Build each graph and table and return a single plotly object
@@ -167,9 +167,9 @@ app.layout = serve_layout
     Output(component_id='row20g', component_property='figure'),
     Output(component_id='row21g', component_property='figure'),
     Output(component_id='row30g', component_property='figure'),
-    # Output(component_id='row31g', component_property='figure'),   unused
+    # Output(component_id='row31g', component_property='figure'),   # unused
     Output(component_id='row40g', component_property='figure'),
-    # Output(component_id='row41g', component_property='figure'),   unfinished
+    Output(component_id='row41g', component_property='figure'),   
     Input (component_id="fy", component_property='value'),
     Input (component_id="qtr", component_property='value'),
     Input (component_id="mo", component_property='value'),
@@ -227,7 +227,7 @@ def update_graphs(fy, qtr, mo):
         [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
         [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
         [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
-        [  ],
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],
     ]
 
     ret = []
@@ -238,7 +238,7 @@ def update_graphs(fy, qtr, mo):
     ret += buildGraphs(4, ['xy', 'xy'], 'fig')
     ret = list(filter(None, ret))
     return ret
-    
+
 
 if __name__ == '__main__': 
     app.run_server()
