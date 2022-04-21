@@ -73,12 +73,13 @@ CSVDirectory = [
 ]
 
 # Build each graph and table and return a single plotly object
-def buildGraphs(row, types):
+def buildGraphs(row, types, ret='div'):
     # Get figlists and layouts for row
     fig_bases = figures.get()[row]
 
     # Fill each cell with a graph or table
     rowid = 'row'+str(row)
+    figs = [None, None]
     children = [None, None]
     for i in range(2):
         if fig_bases[i] is not None:
@@ -88,8 +89,6 @@ def buildGraphs(row, types):
                 specs['secondary_y'] = True
 
             fig = sp.make_subplots(
-                # subplot_titles=layout['title'],
-                # row_heights=[0.6],
                 specs=[[specs]]
             )
             fig.update_layout(
@@ -110,29 +109,32 @@ def buildGraphs(row, types):
                 if layout.get('yaxis_title'):
                     fig.update_yaxes(title_text=layout['yaxis_title'])
                 if layout.get('y2axis_title'):
-                    fig.update_yaxes(title_text=layout['y2axis_title'], tickformat=".0%", secondary_y=True)
+                    fig.update_yaxes(title_text=layout['y2axis_title'], tickformat=".0%", secondary_y=True, automargin=True)
+                    fig.update_layout(legend={"x" : 1.05, "y" : 1})
                 
-
+            figs[i] = fig
             children[i] = html.Div(id=rowid+str(i), children=[
-                dcc.Graph(id=rowid+str(i)+'g', figure=fig)
+                dcc.Graph(id=rowid+str(i)+'g', figure=fig, responsive=True)
             ], style={'padding': 20, 'flex': 1})
-
-    return html.Div(id=rowid, children=children, style={'display': 'flex', 'flex-direction': 'row'})
-    # return html.Div(id=rowid, children=children, style={'display': 'inline-flex'})
-
+        else:
+            children[i] = html.Div(id=rowid+str(i), style={'padding': 20, 'flex': 1, 'width': '49%'})
+    if ret == 'div':
+        return html.Div(id=rowid, children=children, style={'display': 'flex', 'flex-direction': 'row', 'min-height': 300})
+    else:
+        return figs
 
 
 def buildDropdowns():
     fy = html.Div(id="fydiv", children=[
-        dcc.Dropdown(sorted(FYs), placeholder="Select a Fiscal Year", id="fy")
+        dcc.Dropdown(sorted(FYs, reverse=True), placeholder="Select a Fiscal Year", id="fy")
     ], style={'padding': 10, 'flex': 1})
 
     qtr = html.Div(id="qtrdiv", children=[
-        dcc.Dropdown(sorted(QTRs), placeholder="Select a Quarter", id="qtr")
+        dcc.Dropdown(sorted(QTRs, reverse=True), placeholder="Select a Quarter", id="qtr")
     ], style={'padding': 10, 'flex': 1})
 
     mon = html.Div(id="modiv", children=[
-        dcc.Dropdown(sorted(MONs), placeholder="Select a Month", id="mo")
+        dcc.Dropdown(sorted(MONs, reverse=True), placeholder="Select a Month", id="mo")
     ], style={'padding': 10, 'flex': 1})
 
     return html.Div(id="dates", children=[
@@ -150,23 +152,28 @@ def serve_layout():
         buildGraphs(2, ['xy','table']),
         buildGraphs(3, ['table', 'xy']),
         buildGraphs(4, ['xy', 'xy']),
-        # TODO: make a 2 col graph obj, maybe dont build table as a subplot ==> in specs of subplot, use rowspan=2
-        # dcc.Graph(id = 'row6', figure = buildGraphs(5, [])),
+        # build final table
     ])
 
 app = Dash()   #initialize dash app
 app.layout = serve_layout
 
-# Update all the visuals according to the values in the dropdowns
+# # Update all the visuals according to the values in the dropdowns
 @app.callback(
-    Output(component_id='row0', component_property='children'),
-    Output(component_id='row1', component_property='children'),
-    Output(component_id='row2', component_property='children'),
-    Output(component_id='row3', component_property='children'),
-    Output(component_id='row4', component_property='children'),
+    Output(component_id='row00g', component_property='figure'),
+    Output(component_id='row01g', component_property='figure'),
+    Output(component_id='row10g', component_property='figure'),
+    Output(component_id='row11g', component_property='figure'),
+    Output(component_id='row20g', component_property='figure'),
+    Output(component_id='row21g', component_property='figure'),
+    Output(component_id='row30g', component_property='figure'),
+    # Output(component_id='row31g', component_property='figure'),   unused
+    Output(component_id='row40g', component_property='figure'),
+    # Output(component_id='row41g', component_property='figure'),   unfinished
     Input (component_id="fy", component_property='value'),
     Input (component_id="qtr", component_property='value'),
     Input (component_id="mo", component_property='value'),
+    prevent_initial_call=True
 )
 def update_graphs(fy, qtr, mo):
     """Update graph values with dropdown filters"""
@@ -223,14 +230,15 @@ def update_graphs(fy, qtr, mo):
         [  ],
     ]
 
-    return (
-        buildGraphs(0, ['xy','xy']),
-        buildGraphs(1, ['table','table']),
-        buildGraphs(2, ['xy','table']),
-        buildGraphs(3, ['table', 'xy']),
-        buildGraphs(4, ['xy', 'xy'])
-    )
-    # return serve_layout
+    ret = []
+    ret += buildGraphs(0, ['xy','xy'], 'fig')
+    ret += buildGraphs(1, ['table','table'], 'fig')
+    ret += buildGraphs(2, ['xy','table'], 'fig')
+    ret += buildGraphs(3, ['table', 'xy'], 'fig')
+    ret += buildGraphs(4, ['xy', 'xy'], 'fig')
+    ret = list(filter(None, ret))
+    return ret
+    
 
 if __name__ == '__main__': 
     app.run_server()
