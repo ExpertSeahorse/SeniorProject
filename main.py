@@ -6,7 +6,7 @@ before trying to run.
 """
 
 import os
-import math
+import math, sys
 from datetime import datetime
 import pandas
 import plotly.subplots as sp
@@ -15,6 +15,7 @@ from dash.dependencies import Input, Output
 
 # import graphs and table building functions
 import figures
+from figures import TableForAllTotals
 
 FYs = []
 QTRs = []
@@ -37,10 +38,11 @@ for filename in os.listdir(directory):
     for d in dates:
         date = datetime.strptime(d, "%Y-%m")
         
-        # Determine if year is already in years
+        # Determine if year is already in years, or if next FY has arrived
         if date.strftime("%y") not in FYs:
             FYs.append(date.strftime("%y"))
-        date.strftime('%m') 
+        if int(date.strftime("%m")) in [10, 11, 12] and str(int(date.strftime("%y"))+1) not in FYs:
+            FYs.append(str(int(date.strftime("%y"))+1))
 
         # Determine if quarter is already in quarters
         yr = date.strftime("%y")
@@ -152,7 +154,9 @@ def serve_layout():
         buildGraphs(2, ['xy','table']),
         buildGraphs(3, ['table', 'xy']),
         buildGraphs(4, ['xy', 'xy']),
-        # build final table
+        html.Div(id='bigtablediv', children=[
+            dcc.Graph(id="bigtable", figure=TableForAllTotals.build(FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv']))
+        ])
     ])
 
 app = Dash()   #initialize dash app

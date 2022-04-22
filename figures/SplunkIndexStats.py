@@ -6,8 +6,6 @@ fix: is not displaying all the indexes
 
 import pandas
 import plotly.graph_objects as go
-import plotly.subplots as sp
-import numpy as np
 
 def build(splunk_stats):
     # Sum all counts for a given month
