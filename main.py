@@ -5,29 +5,39 @@ Make sure you install python 3.6+ and run:
 before trying to run.
 """
 
-from email import header
 import os
 import math, sys
 from datetime import datetime
 import pandas
 import plotly.subplots as sp
 from dash import Dash, html, dcc
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
+import dash_daq as daq
 
 # import graphs and table building functions
 import figures
-from figures import TableForAllTotals
 
 # Create Table and Graph themes
 import plotly.graph_objects as go
 import plotly.io as pio
-lightmode = go.layout.Template()
+lightmode = go.layout.Template(
+    layout=dict(
+        paper_bgcolor='rgba(0,0,0,0)',
+        # plot_bgcolor='rgba(0,0,0,0)'
+    )
+)
 lightmode.data.table = [go.Table(
     header={'fill_color': 'lightskyblue', 'align': 'center'},
     cells={'align': 'center'}
 )]
 pio.templates['mylight'] = lightmode
-darkmode = go.layout.Template()
+darkmode = go.layout.Template(
+    layout=dict(
+        paper_bgcolor='rgba(0,0,0,0)',
+        # plot_bgcolor='rgba(0,0,0,0)'
+    )
+)
 darkmode.data.table = [go.Table(
     header={'fill_color': 'SteelBlue', 'align': 'center'},
     cells={'align': 'center'}
@@ -89,11 +99,12 @@ CSVDirectory = [
     [ CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
     [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
     [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ]
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],
+    [ FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv'] ]
 ]
 
 # Build each graph and table and return a single plotly object
-def buildGraphs(row, types, ret='div'):
+def buildGraphs(row, types, ret='div', theme='light'):
     # Get figlists and layouts for row
     fig_bases = figures.get()[row]
 
@@ -103,6 +114,7 @@ def buildGraphs(row, types, ret='div'):
     children = [None, None]
     for i in range(2):
         if fig_bases[i] is not None:
+            # Setup initial configuration
             figlist, layout = fig_bases[i].build(*(CSVDirectory[(2*row)+i]))
             specs = {"type": types[i]}
             if types[i] == 'xy':
@@ -111,10 +123,16 @@ def buildGraphs(row, types, ret='div'):
             fig = sp.make_subplots(
                 specs=[[specs]]
             )
+
+            template = 'plotly'
+            if theme == 'light':
+                template="plotly+mylight"
+            elif theme == 'dark':
+                template="plotly_dark+mydark"
+
             fig.update_layout(
                 barmode='stack',
-                # template="plotly_dark+mydark"
-                template="plotly+mylight"
+                template=template
             )   
 
             # Plot the figures from the figlist
@@ -138,6 +156,9 @@ def buildGraphs(row, types, ret='div'):
             children[i] = html.Div(id=rowid+str(i), children=[
                 dcc.Graph(id=rowid+str(i)+'g', figure=fig, responsive=True)
             ], style={'padding': 20, 'flex': 1})
+
+            if row == 5:
+                break
         else:
             children[i] = html.Div(id=rowid+str(i), style={'padding': 20, 'flex': 1, 'width': '49%'})
     if ret == 'div':
@@ -152,7 +173,7 @@ def buildDropdowns():
     ], style={'padding': 10, 'flex': 1})
 
     qtr = html.Div(id="qtrdiv", children=[
-        dcc.Dropdown(sorted(QTRs, reverse=True), placeholder="Select a Quarter", id="qtr")
+        dcc.Dropdown(sorted(QTRs, reverse=True), placeholder="Select a Quarter", id="qtr",)
     ], style={'padding': 10, 'flex': 1})
 
     mon = html.Div(id="modiv", children=[
@@ -163,29 +184,37 @@ def buildDropdowns():
         fy, qtr, mon
     ], style={'display': 'flex', 'flex-direction': 'row'})
 
+toggle = html.Div([
+        html.Span(children="Dark   "),
+        dbc.Switch(value=True, id="theme", className="d-inline-block ml-2"),
+        html.Span(children=" Light"),
+    ], className="d-inline-block")
 
 def serve_layout():
     """Serving Dash the layout as a function makes it reload the graphs after each reload of the webpage, instead of after each reboot of the WSGI server"""
     return html.Div(id = 'parent', children = [
         buildDropdowns(),
+        toggle,
         html.H1(id = 'H1', children = 'Raymond James Dashboard', style = {'textAlign':'center', 'marginTop':40,'marginBottom':40}),
         buildGraphs(0, ['xy','xy']),
         buildGraphs(1, ['table','table']),
         buildGraphs(2, ['xy','table']),
         buildGraphs(3, ['table', 'xy']),
         buildGraphs(4, ['xy', 'xy']),
-        html.Div(id='bigtablediv', children=[
-            dcc.Graph(id="bigtable", figure=TableForAllTotals.build(
-                FYs, 
-                CSVs['host_exploit_threat_stats_complete.csv'], 
-                CSVs["pan_blocked_traffic_stats_complete.csv"], 
-                CSVs['allevents.stats.complete.csv']
-            ), responsive=True, style={'flex': 1})
-        ], style={'display': 'flex', 'flex-direction': 'row'})
+        buildGraphs(5, ['xy', 'xy']),
+        # html.Div(id='bigtablediv', children=[
+        #     dcc.Graph(id="bigtable", figure=TableForAllTotals.build(
+        #         FYs, 
+        #         CSVs['host_exploit_threat_stats_complete.csv'], 
+        #         CSVs["pan_blocked_traffic_stats_complete.csv"], 
+        #         CSVs['allevents.stats.complete.csv']
+        #     ), responsive=True, style={'flex': 1})
+        # ], style={'display': 'flex', 'flex-direction': 'row'})
+        html.Div(id='blank_output')
     ])
-import dash_bootstrap_components as dbc
 
-app = Dash(external_stylesheets=[dbc.themes.DARKLY])   #initialize dash app
+import dash_bootstrap_components as dbc
+app = Dash(external_stylesheets=['https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css'])   #initialize dash app
 app.layout = serve_layout
 
 # # Update all the visuals according to the values in the dropdowns
@@ -200,13 +229,16 @@ app.layout = serve_layout
     # Output(component_id='row31g', component_property='figure'),   # unused
     Output(component_id='row40g', component_property='figure'),
     Output(component_id='row41g', component_property='figure'),   
+    Output(component_id='row50g', component_property='figure'),   
+    # Output(component_id='row51g', component_property='figure'),   # unused
     Input (component_id="fy", component_property='value'),
     Input (component_id="qtr", component_property='value'),
     Input (component_id="mo", component_property='value'),
+    Input(component_id="theme", component_property="value"),
     prevent_initial_call=True
 )
-def update_graphs(fy, qtr, mo):
-    """Update graph values with dropdown filters"""
+def update_graphs(fy, qtr, mo, themeToggle):
+    """Update graph values with dropdown filters and theme value"""
     filtered_CSVs = {}
     if fy:
         for name, df in CSVs.items():
@@ -258,16 +290,43 @@ def update_graphs(fy, qtr, mo):
         [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
         [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
         [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],
+        [ FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv'] ]
     ]
 
+    # Set graphs as light or dark mode
+    if themeToggle:
+        theme = 'light'
+    else:
+        theme = 'dark'
+
     ret = []
-    ret += buildGraphs(0, ['xy','xy'], 'fig')
-    ret += buildGraphs(1, ['table','table'], 'fig')
-    ret += buildGraphs(2, ['xy','table'], 'fig')
-    ret += buildGraphs(3, ['table', 'xy'], 'fig')
-    ret += buildGraphs(4, ['xy', 'xy'], 'fig')
+    ret += buildGraphs(0, ['xy','xy'], 'fig', theme)
+    ret += buildGraphs(1, ['table','table'], 'fig', theme)
+    ret += buildGraphs(2, ['xy','table'], 'fig', theme)
+    ret += buildGraphs(3, ['table', 'xy'], 'fig', theme)
+    ret += buildGraphs(4, ['xy', 'xy'], 'fig', theme)
+    ret += buildGraphs(5, ['xy', 'xy'], 'fig', theme)
     ret = list(filter(None, ret))
     return ret
+
+
+# Update clientside darkmode
+# This and most other color formatting adapted from: 
+# https://community.plotly.com/t/updating-external-stylesheets-via-callback/31635/9#:~:text=welcome%20to%20the-,Dash%20community,-The%20example%20above
+app.clientside_callback(
+    """
+    function(themeToggle) {
+        //  To use different themes,  change these links:
+        const theme1 = "https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css"
+        const theme2 = "https://cdn.jsdelivr.net/npm/bootswatch@5.1.0/dist/darkly/bootstrap.min.css"
+        const stylesheet = document.querySelector('link[rel=stylesheet][href^="https://cdn.jsdelivr"]')        
+        var themeLink = themeToggle ? theme1 : theme2;
+        stylesheet.href = themeLink
+    }
+    """,
+    Output("blank_output", "children"),
+    Input("theme", "value"),
+)
 
 
 if __name__ == '__main__': 

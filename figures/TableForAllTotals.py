@@ -115,7 +115,12 @@ def build(fiscal_years, threat_stats, pan, allEvents):
             lambda x: "{0:.2f}%".format(x * 100) if abs(float(x)) < 1 else str(x), col
         )))
 
-    return go.Figure(data=[go.Table(
+    fig = go.Table(
         header=dict(values=list(cols.columns)),
         cells=dict(values=values)
-    )])
+    )
+    layout = {
+        "title": "Table For All Totals"
+    }
+
+    return [fig], layout

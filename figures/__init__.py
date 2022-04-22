@@ -7,13 +7,14 @@ import figures.TableTotalStats as tts
 import figures.HostExploitDetectionStats as heds
 import figures.SplunkIndexStats as sis
 import figures.HostThreatQuarantined as htq
+import figures.TableForAllTotals as tfat
 
-# htq = None
 def get():
     return [
         [nts1, nts2], 
         [at, tns], 
         [ae, tts], 
         [sis, None], 
-        [heds, htq]
+        [heds, htq],
+        [tfat]
     ]
