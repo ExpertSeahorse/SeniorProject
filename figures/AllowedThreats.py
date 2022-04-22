@@ -23,16 +23,8 @@ def build(threat_stats):
     
     # Generate the table
     fig = go.Table(
-        header=dict(
-            values=["Date","Allowed Threats"],
-            fill_color='lightskyblue',
-            align='center'
-        ),
-        cells=dict(
-            values=[data['date'],data['allowed']],
-            fill_color='lavender',
-            align='center'
-        )
+        header=dict(values=["Date","Allowed Threats"]),
+        cells=dict(values=[data['date'],data['allowed']])
     )
 
     layout = {

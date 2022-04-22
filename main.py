@@ -5,6 +5,7 @@ Make sure you install python 3.6+ and run:
 before trying to run.
 """
 
+from email import header
 import os
 import math, sys
 from datetime import datetime
@@ -16,6 +17,22 @@ from dash.dependencies import Input, Output
 # import graphs and table building functions
 import figures
 from figures import TableForAllTotals
+
+# Create Table and Graph themes
+import plotly.graph_objects as go
+import plotly.io as pio
+lightmode = go.layout.Template()
+lightmode.data.table = [go.Table(
+    header={'fill_color': 'lightskyblue', 'align': 'center'},
+    cells={'align': 'center'}
+)]
+pio.templates['mylight'] = lightmode
+darkmode = go.layout.Template()
+darkmode.data.table = [go.Table(
+    header={'fill_color': 'SteelBlue', 'align': 'center'},
+    cells={'align': 'center'}
+)]
+pio.templates['mydark'] = darkmode
 
 FYs = []
 QTRs = []
@@ -95,7 +112,9 @@ def buildGraphs(row, types, ret='div'):
                 specs=[[specs]]
             )
             fig.update_layout(
-                barmode='stack'
+                barmode='stack',
+                # template="plotly_dark+mydark"
+                template="plotly+mylight"
             )   
 
             # Plot the figures from the figlist
@@ -164,8 +183,9 @@ def serve_layout():
             ), responsive=True, style={'flex': 1})
         ], style={'display': 'flex', 'flex-direction': 'row'})
     ])
+import dash_bootstrap_components as dbc
 
-app = Dash()   #initialize dash app
+app = Dash(external_stylesheets=[dbc.themes.DARKLY])   #initialize dash app
 app.layout = serve_layout
 
 # # Update all the visuals according to the values in the dropdowns

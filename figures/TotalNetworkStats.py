@@ -35,8 +35,8 @@ def build(threat_stats):
                 "Blocked",
                 "Block Rate Percentage"
             ],
-            fill_color='lightskyblue',
-            align='center'
+            # fill_color='lightskyblue',
+            # align='center'
         ),
         cells=dict(
             values=[
@@ -46,8 +46,8 @@ def build(threat_stats):
                 data['blocked'],
                 data['prcnt_block']
             ],
-            fill_color='lavender',
-            align='center'
+            # fill_color='lavender',
+            # align='center'
         )
     )
 

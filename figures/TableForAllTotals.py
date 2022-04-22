@@ -116,10 +116,6 @@ def build(fiscal_years, threat_stats, pan, allEvents):
         )))
 
     return go.Figure(data=[go.Table(
-        header=dict(values=list(cols.columns),
-                    fill_color='lightskyblue',
-                    align='center'),
-        cells=dict(values=values,
-                fill_color='lavender',
-                align='left'))
-        ])
+        header=dict(values=list(cols.columns)),
+        cells=dict(values=values)
+    )])

@@ -21,14 +21,9 @@ def build(splunk_stats):
     # Create Table
     fig = go.Table(
         header=dict(
-            values=["Date", "Index", "Count"],
-            fill_color='lightskyblue',
-            align='center'
-        ),
+            values=["Date", "Index", "Count"]),
         cells=dict(
-            values=[data['date'],data['index'],data['count']],
-            fill_color='lavender',
-            align='center'
+            values=[data['date'],data['index'],data['count']]
         )
     )
 

@@ -8,13 +8,9 @@ def build(SIEM):
     fig = go.Table(
         header=dict(
             values=["Date","Count"],
-            fill_color='lightskyblue',
-            align='center'
         ),
         cells=dict(
             values=[o['date'],o['count']],
-            fill_color='lavender',
-            align='center'
         )       
     )
     layout = {
