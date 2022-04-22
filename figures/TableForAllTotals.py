@@ -8,12 +8,13 @@ import plotly.graph_objects as go
 
 
 def constrainTable(df, fy) -> pandas.DataFrame:
-        try:
-            lfy = str(int(fy)-1)
-            pattern = f'20{fy}-0[1-9]|20{lfy}-1[0-2]'
-            return df[df['time'].str.contains(pattern)]
-        except KeyError:
-            return df[df['date'].str.contains(pattern)]
+    """Return only the rows in the year from the dataframe"""
+    try:
+        lfy = str(int(fy)-1)
+        pattern = f'20{fy}-0[1-9]|20{lfy}-1[0-2]'
+        return df[df['time'].str.contains(pattern)]
+    except KeyError:
+        return df[df['date'].str.contains(pattern)]
 
 
 def build(fiscal_years, threat_stats, pan, allEvents):
@@ -99,28 +100,20 @@ def build(fiscal_years, threat_stats, pan, allEvents):
     for i, row in enumerate(CAGRs):
         if row[2] > 0:
             cagr = ( (row[1]/row[0])**(1/row[2]) ) - 1
-            data['Annualized Growth'][i] = cagr
-
-    # Convert to percentages
-    # for key, value in data.items():
+            data['Annualized Growth'][i] = cagr      
         
-        
-
-
-        
-    # Consolidate all data into a dataframe and move into a table
+    # Consolidate all data into a dataframe
     cols = pandas.DataFrame(data)
-    print(cols)
-    g =  cols.transpose().values.tolist()
+
+    # Convert all decimals to percentages
     values = []
-    for col in g:
+    for col in cols.transpose().values.tolist():
         if type(col[0]) == str:
             values.append(col)
             continue
-        c = list(map(
+        values.append(list(map(
             lambda x: "{0:.2f}%".format(x * 100) if abs(float(x)) < 1 else str(x), col
-        ))
-        values.append(c)
+        )))
 
     return go.Figure(data=[go.Table(
         header=dict(values=list(cols.columns),

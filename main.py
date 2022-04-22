@@ -50,6 +50,7 @@ for filename in os.listdir(directory):
         qnum = math.ceil(int(mo)/3)
         if qnum == 4:
             qnum = 1
+            yr = str(int(yr)+1)
         else:
             qnum += 1
         qtr = 'Y' + yr + 'Q' + str(qnum)
@@ -155,8 +156,13 @@ def serve_layout():
         buildGraphs(3, ['table', 'xy']),
         buildGraphs(4, ['xy', 'xy']),
         html.Div(id='bigtablediv', children=[
-            dcc.Graph(id="bigtable", figure=TableForAllTotals.build(FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv']))
-        ])
+            dcc.Graph(id="bigtable", figure=TableForAllTotals.build(
+                FYs, 
+                CSVs['host_exploit_threat_stats_complete.csv'], 
+                CSVs["pan_blocked_traffic_stats_complete.csv"], 
+                CSVs['allevents.stats.complete.csv']
+            ), responsive=True, style={'flex': 1})
+        ], style={'display': 'flex', 'flex-direction': 'row'})
     ])
 
 app = Dash()   #initialize dash app
