@@ -1,109 +1,74 @@
 """
 Make sure you install python 3.6+ and run:
-    pip install dash
-    pip install pandas
+    pip install -r requirements.txt
 before trying to run.
 """
 
 import os
-import math, sys
+import math
 from datetime import datetime
+
 import pandas
+import plotly.io as pio
 import plotly.subplots as sp
 from dash import Dash, html, dcc
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
-import dash_daq as daq
 
 # import graphs and table building functions
 import figures
 
 # Create Table and Graph themes
-import plotly.graph_objects as go
-import plotly.io as pio
-lightmode = go.layout.Template(
-    layout=dict(
-        paper_bgcolor='rgba(0,0,0,0)',
-        # plot_bgcolor='rgba(0,0,0,0)'
-    )
-)
-lightmode.data.table = [go.Table(
-    header={'fill_color': 'lightskyblue', 'align': 'center'},
-    cells={'align': 'center'}
-)]
-pio.templates['mylight'] = lightmode
-darkmode = go.layout.Template(
-    layout=dict(
-        paper_bgcolor='rgba(0,0,0,0)',
-        # plot_bgcolor='rgba(0,0,0,0)'
-    )
-)
-darkmode.data.table = [go.Table(
-    header={'fill_color': 'SteelBlue', 'align': 'center'},
-    cells={'align': 'center'}
-)]
-pio.templates['mydark'] = darkmode
+pio.templates['mylight'], pio.templates['mydark'] = figures.getThemes()
 
 FYs = []
 QTRs = []
 MONs = []
 CSVs = {}
-directory = 'data'
-for filename in os.listdir(directory):
-    # Import csv files into Pandas DataFrames
-    csv = pandas.read_csv(os.path.join(directory, filename))
-    CSVs[filename] = csv
-    
-    # Generate list of FYs, QTRs, and MONs
-    if 'time' in csv.columns:
-        dates = csv.time.unique()
-    elif 'date' in csv.columns:
-        dates = csv.date.unique()
-    else:
-        print("no 'date' or 'time' column to get dates")
-        
-    for d in dates:
-        date = datetime.strptime(d, "%Y-%m")
-        
-        # Determine if year is already in years, or if next FY has arrived
-        if date.strftime("%y") not in FYs:
-            FYs.append(date.strftime("%y"))
-        if int(date.strftime("%m")) in [10, 11, 12] and str(int(date.strftime("%y"))+1) not in FYs:
-            FYs.append(str(int(date.strftime("%y"))+1))
 
-        # Determine if quarter is already in quarters
-        yr = date.strftime("%y")
-        mo = date.strftime("%m")
-        qnum = math.ceil(int(mo)/3)
-        if qnum == 4:
-            qnum = 1
-            yr = str(int(yr)+1)
+# Import csv files into Pandas DataFrames
+def ingestCSVs():
+    directory = 'data'
+    for filename in os.listdir(directory):
+        csv = pandas.read_csv(os.path.join(directory, filename))
+        CSVs[filename] = csv
+        
+        # Generate list of FYs, QTRs, and MONs
+        if 'time' in csv.columns:
+            dates = csv.time.unique()
+        elif 'date' in csv.columns:
+            dates = csv.date.unique()
         else:
-            qnum += 1
-        qtr = 'Y' + yr + 'Q' + str(qnum)
-        if qtr not in QTRs:
-            QTRs.append(qtr)
+            print("no 'date' or 'time' column to get dates")
+            
+        for d in dates:
+            date = datetime.strptime(d, "%Y-%m")
+            
+            # Determine if year is already in years, or if next FY has arrived
+            if date.strftime("%y") not in FYs:
+                FYs.append(date.strftime("%y"))
+            if int(date.strftime("%m")) in [10, 11, 12] and str(int(date.strftime("%y"))+1) not in FYs:
+                FYs.append(str(int(date.strftime("%y"))+1))
 
-        # Determine if month is already in months
-        if d not in MONs:
-            MONs.append(d)
+            # Determine if quarter is already in quarters
+            yr = date.strftime("%y")
+            mo = date.strftime("%m")
+            qnum = math.ceil(int(mo)/3)
+            if qnum == 4:
+                qnum = 1
+                yr = str(int(yr)+1)
+            else:
+                qnum += 1
+            qtr = 'Y' + yr + 'Q' + str(qnum)
+            if qtr not in QTRs:
+                QTRs.append(qtr)
 
-# Organize which CSVs will be needed for which visuals
-CSVDirectory = [
-    [ CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"] ], # Network Traffic Stats
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Network Threat Stats
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Table Top count
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Total network stats
-    [ CSVs['allevents.stats.complete.csv'] ],                                                           # All Splunk Events
-    [ CSVs['allevents.stats.complete.csv'] ],                                                           # Table Total stats for Splunk
-    [ CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],
-    [ FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv'] ]
-]
+            # Determine if month is already in months
+            if d not in MONs:
+                MONs.append(d)
+    return CSVs, FYs, QTRs, MONs
 
-# Build each graph and table and return a single plotly object
+# Build each graph and table and return a div or just a single plotly object
 def buildGraphs(row, types, ret='div', theme='light'):
     # Get figlists and layouts for row
     fig_bases = figures.get()[row]
@@ -166,7 +131,7 @@ def buildGraphs(row, types, ret='div', theme='light'):
     else:
         return figs
 
-
+# Build all 3 dropdowns
 def buildDropdowns():
     fy = html.Div(id="fydiv", children=[
         dcc.Dropdown(sorted(FYs, reverse=True), placeholder="Select a Fiscal Year", id="fy")
@@ -184,17 +149,35 @@ def buildDropdowns():
         fy, qtr, mon
     ], style={'display': 'flex', 'flex-direction': 'row'})
 
-toggle = html.Div([
+
+CSVs, FYs, QTRs, MONs = ingestCSVs()
+
+# Organize which CSVs will be needed for which visuals
+CSVDirectory = [
+    [ CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"] ], # Network Traffic Stats
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Network Threat Stats
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Table Top count
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Total network stats
+    [ CSVs['allevents.stats.complete.csv'] ],                                                           # All Splunk Events
+    [ CSVs['allevents.stats.complete.csv'] ],                                                           # Table Total stats for Splunk
+    [ CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
+    [ CSVs['host_exploit_threat_stats_complete.csv'] ],
+    [ FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv'] ]
+]
+
+def serve_layout():
+    """Serving Dash the layout as a function makes it reload the graphs after each reload of the webpage, instead of after each reboot of the WSGI server"""
+    darktoggle = html.Div([
         html.Span(children="Dark   "),
         dbc.Switch(value=True, id="theme", className="d-inline-block ml-2"),
         html.Span(children=" Light"),
     ], className="d-inline-block")
 
-def serve_layout():
-    """Serving Dash the layout as a function makes it reload the graphs after each reload of the webpage, instead of after each reboot of the WSGI server"""
     return html.Div(id = 'parent', children = [
         buildDropdowns(),
-        toggle,
+        darktoggle,
         html.H1(id = 'H1', children = 'Raymond James Dashboard', style = {'textAlign':'center', 'marginTop':40,'marginBottom':40}),
         buildGraphs(0, ['xy','xy']),
         buildGraphs(1, ['table','table']),
@@ -202,18 +185,9 @@ def serve_layout():
         buildGraphs(3, ['table', 'xy']),
         buildGraphs(4, ['xy', 'xy']),
         buildGraphs(5, ['xy', 'xy']),
-        # html.Div(id='bigtablediv', children=[
-        #     dcc.Graph(id="bigtable", figure=TableForAllTotals.build(
-        #         FYs, 
-        #         CSVs['host_exploit_threat_stats_complete.csv'], 
-        #         CSVs["pan_blocked_traffic_stats_complete.csv"], 
-        #         CSVs['allevents.stats.complete.csv']
-        #     ), responsive=True, style={'flex': 1})
-        # ], style={'display': 'flex', 'flex-direction': 'row'})
         html.Div(id='blank_output')
     ])
 
-import dash_bootstrap_components as dbc
 app = Dash(external_stylesheets=['https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css'])   #initialize dash app
 app.layout = serve_layout
 
@@ -299,6 +273,7 @@ def update_graphs(fy, qtr, mo, themeToggle):
     else:
         theme = 'dark'
 
+    # Rebuild graphs figures with correct color mode
     ret = []
     ret += buildGraphs(0, ['xy','xy'], 'fig', theme)
     ret += buildGraphs(1, ['table','table'], 'fig', theme)
@@ -306,7 +281,7 @@ def update_graphs(fy, qtr, mo, themeToggle):
     ret += buildGraphs(3, ['table', 'xy'], 'fig', theme)
     ret += buildGraphs(4, ['xy', 'xy'], 'fig', theme)
     ret += buildGraphs(5, ['xy', 'xy'], 'fig', theme)
-    ret = list(filter(None, ret))
+    ret = list(filter(None, ret))           # Remove any None results
     return ret
 
 

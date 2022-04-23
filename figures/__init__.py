@@ -10,6 +10,7 @@ import figures.HostThreatQuarantined as htq
 import figures.TableForAllTotals as tfat
 
 def get():
+    """Get all graph modules in order"""
     return [
         [nts1, nts2], 
         [at, tns], 
@@ -18,3 +19,19 @@ def get():
         [heds, htq],
         [tfat]
     ]
+
+import plotly.graph_objects as go
+def getThemes():
+    """Get light and dark theme modifications"""
+    lightmode = go.layout.Template(layout_paper_bgcolor='rgba(0,0,0,0)')
+    lightmode.data.table = [go.Table(
+        header={'fill_color': 'lightskyblue', 'align': 'center'},
+        cells={'align': 'center'}
+    )]
+    darkmode = go.layout.Template(layout_paper_bgcolor='rgba(0,0,0,0)')
+
+    darkmode.data.table = [go.Table(
+        header={'fill_color': 'SteelBlue', 'align': 'center'},
+        cells={'align': 'center'}
+    )]
+    return lightmode, darkmode
