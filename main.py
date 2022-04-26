@@ -127,7 +127,7 @@ def buildGraphs(row, types, ret='div', theme='light'):
         else:
             children[i] = html.Div(id=rowid+str(i), style={'padding': 20, 'flex': 1, 'width': '49%'})
     if ret == 'div':
-        return html.Div(id=rowid, children=children, style={'display': 'flex', 'flex-direction': 'row', 'min-height': 300})
+        return html.Div(id=rowid, children=children, style={'display': 'flex', 'flex-direction': 'row', 'min-height': 450})
     else:
         return figs
 
