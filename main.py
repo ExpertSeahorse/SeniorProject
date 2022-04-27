@@ -5,6 +5,7 @@ before trying to run.
 """
 
 import os
+import sys
 import math
 from datetime import datetime
 
@@ -153,19 +154,24 @@ def buildDropdowns():
 CSVs, FYs, QTRs, MONs = ingestCSVs()
 
 # Organize which CSVs will be needed for which visuals
-CSVDirectory = [
-    [ CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"] ], # Network Traffic Stats
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Network Threat Stats
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Table Top count
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Total network stats
-    [ CSVs['allevents.stats.complete.csv'] ],                                                           # All Splunk Events
-    [ CSVs['allevents.stats.complete.csv'] ],                                                           # Table Total stats for Splunk
-    [ CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
-    [ CSVs['host_exploit_threat_stats_complete.csv'] ],
-    [ FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv'] ]
-]
+try:
+    CSVDirectory = [
+        [ CSVs["pan_allowed_traffic_stats_complete.csv"], CSVs["pan_blocked_traffic_stats_complete.csv"] ],            # Network Traffic Stats
+        [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Network Threat Stats
+        [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Allowed Threats
+        [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Table Top count
+        [ CSVs['allevents.stats.complete.csv'] ],                                                                      # Total network stats
+        [ CSVs['allevents.stats.complete.csv'] ],                                                                      # All Splunk Events
+        [ CSVs['allevents.stats.complete.csv'] ],                                                                      # Table Total stats for Splunk
+        [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Stats per SIEM index
+        [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Host Exploit Detection Stats
+        [ CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Host Threat Quarantined Stats
+        [ FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv'] ]   # Table For All Totals
+    ]
+except KeyError as e:
+    print(f"missing file: {e}")
+    print("Either the file has been renamed or is missing.")
+    sys.exit()
 
 def serve_layout():
     """Serving Dash the layout as a function makes it reload the graphs after each reload of the webpage, instead of after each reboot of the WSGI server"""
@@ -204,7 +210,7 @@ app.layout = serve_layout
     Output(component_id='row40g', component_property='figure'),
     Output(component_id='row41g', component_property='figure'),   
     Output(component_id='row50g', component_property='figure'),   
-    # Output(component_id='row51g', component_property='figure'),   # unused
+    # Output(component_id='row51g', component_property='figure'),   # unused, table is 2 cols wide
     Input (component_id="fy", component_property='value'),
     Input (component_id="qtr", component_property='value'),
     Input (component_id="mo", component_property='value'),
@@ -254,17 +260,17 @@ def update_graphs(fy, qtr, mo, themeToggle):
 
     global CSVDirectory
     CSVDirectory = [
-        [ filtered_CSVs["pan_allowed_traffic_stats_complete.csv"], filtered_CSVs["pan_blocked_traffic_stats_complete.csv"] ], # Network Traffic Stats
-        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Network Threat Stats
-        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Table Top count
-        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Total network stats
-        [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # All Splunk Events
-        [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # Table Total stats for Splunk
-        [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                           # Stats per SIEM index
-        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Exploit Detection Stats
-        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                 # Host Threat Quarantined Stats
-        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],
-        [ FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv'] ]
+        [ filtered_CSVs["pan_allowed_traffic_stats_complete.csv"], filtered_CSVs["pan_blocked_traffic_stats_complete.csv"] ],   # Network Traffic Stats
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Network Threat Stats
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Allowed Threats
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Table Top count
+        [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                                      # Total network stats
+        [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                                      # All Splunk Events
+        [ filtered_CSVs['allevents.stats.complete.csv'] ],                                                                      # Table Total stats for Splunk
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Stats per SIEM index
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Host Exploit Detection Stats
+        [ filtered_CSVs['host_exploit_threat_stats_complete.csv'] ],                                                            # Host Threat Quarantined Stats
+        [ FYs, CSVs['host_exploit_threat_stats_complete.csv'], CSVs["pan_blocked_traffic_stats_complete.csv"], CSVs['allevents.stats.complete.csv'] ]   # Table For All Totals
     ]
 
     # Set graphs as light or dark mode
