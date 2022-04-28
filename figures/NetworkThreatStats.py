@@ -45,7 +45,7 @@ def build(threat_stats):
     ]
     
     layout = {
-        'title': 'Network Traffic Stats​',
+        'title': 'Network Threat Stats​',
         'xaxis_title': 'Dates',
         'yaxis_title': 'Count',
         'y2axis_title': 'Percent',

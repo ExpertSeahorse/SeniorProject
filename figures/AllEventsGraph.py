@@ -15,7 +15,7 @@ def build(allStats):
         name = 'SIEM'
     )
     layout = {
-        'title': 'All Splunk Events',
+        'title': 'All SIEM Events',
         'xaxis_title': 'Dates',
         'yaxis_title': 'Count',
         'showlegend': True,
